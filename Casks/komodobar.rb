@@ -1,6 +1,6 @@
 cask "komodobar" do
-  version "0.1.0"
-  sha256 "af86fe5e53b0d44b97847a992f209eda8ca9ae60581e49282b400799fcaa810e"
+  version "0.1.1"
+  sha256 "6b29b03b415f84ddb7f2b227ff2a7e8844c429f4dded4243e9aa8489b8402b59"
 
   url "https://github.com/TerrifiedBug/KomodoBar/releases/download/v#{version}/KomodoBar-#{version}.zip"
   name "KomodoBar"
