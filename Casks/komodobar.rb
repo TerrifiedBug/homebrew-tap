@@ -11,7 +11,8 @@ cask "komodobar" do
   # let Homebrew defer to it rather than manage versions itself.
   auto_updates true
 
-  # Unsigned build: install with `--no-quarantine`, else Gatekeeper blocks it.
+  # Unsigned build: after install, clear quarantine with
+  # `xattr -dr com.apple.quarantine /Applications/KomodoBar.app`.
   app "KomodoBar.app"
 
   zap trash: "~/Library/Preferences/com.komodobar.app.plist"
