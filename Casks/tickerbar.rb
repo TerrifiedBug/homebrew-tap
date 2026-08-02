@@ -1,16 +1,20 @@
 cask "tickerbar" do
-  version "1.4.1"
-  sha256 "6458e4ce61863aadfa15afd4866c20de6215e722b13998dc907012cd01a41538"
+  version "1.5.0"
+  sha256 "abec0db72e7bd65a399906e37e794cdbf034aff40162a937862eaabc6a473d0f"
 
-  url "https://github.com/TerrifiedBug/TickerBar/releases/download/v#{version}/TickerBar.zip"
+  url "https://github.com/TerrifiedBug/tickerbar/releases/download/v#{version}/tickerbar.zip"
   name "TickerBar"
   desc "Lightweight macOS menu bar stock ticker"
-  homepage "https://github.com/TerrifiedBug/TickerBar"
+  homepage "https://github.com/TerrifiedBug/tickerbar"
 
-  # Ad-hoc build self-updates via Sparkle, so let Homebrew defer to it.
+  # Signed, notarized, and self-updating via Sparkle.
   auto_updates true
 
   app "TickerBar.app"
 
-  zap trash: "~/Library/Preferences/com.tickerbar.app.plist"
+  zap trash: [
+    "~/Library/Caches/com.tickerbar.app",
+    "~/Library/HTTPStorages/com.tickerbar.app",
+    "~/Library/Preferences/com.tickerbar.app.plist",
+  ]
 end
