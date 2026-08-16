@@ -1,6 +1,6 @@
 cask "tickerbar" do
-  version "1.5.0"
-  sha256 "abec0db72e7bd65a399906e37e794cdbf034aff40162a937862eaabc6a473d0f"
+  version "1.5.1"
+  sha256 "8055cd543bf52a29a710037ac2b65cf247b0eea9f99d0ce6e23795cf0d159aeb"
 
   url "https://github.com/TerrifiedBug/tickerbar/releases/download/v#{version}/tickerbar.zip"
   name "TickerBar"
