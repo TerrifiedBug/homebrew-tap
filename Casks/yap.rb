@@ -1,6 +1,6 @@
 cask "yap" do
-  version "0.1.3"
-  sha256 "3a9399399946caad7477042c259f60386f3b630ef36ca02c2a45a06ae4085c62"
+  version "0.1.4"
+  sha256 "ed9146c98a7b79e88961aa00398d4a8fdb704e27d10ab1a8481843e6c9d701c9"
 
   url "https://github.com/TerrifiedBug/yap/releases/download/v#{version}/yap-#{version}.dmg"
   name "yap"
@@ -16,6 +16,32 @@ cask "yap" do
   # notarized and so TCC has something stable to hang grants on; this
   # puts the command itself on PATH.
   binary "#{appdir}/yap.app/Contents/MacOS/yap"
+
+  # Homebrew replaces /Applications/yap.app, but a process keeps the
+  # image it already mapped. Without this you stay on the old version
+  # until something restarts the daemon, while "yap --version" reads
+  # the new binary on disk and agrees with the version you just
+  # installed — the worst shape for a bug, because it looks fixed.
+  #
+  # "kickstart -k" rather than an uninstall stanza: it replaces the
+  # job launchd already owns, so the daemon stays inside launchd and
+  # the plist — the login item — is untouched.
+  #
+  # Measured, because the alternative is losing someone's meeting:
+  # -k delivers SIGTERM, not SIGKILL, and yap catches SIGTERM and
+  # routes it through applicationWillTerminate. So a recording in
+  # flight is finalized and transcribes on the next start instead of
+  # losing its meta.json. launchd brings the new image up about five
+  # seconds later.
+  #
+  # must_succeed: false because an install with no login item has no
+  # job to restart, and launchctl exits 113 there. Not having asked
+  # for launch-at-login is not a reason to fail an upgrade.
+  postflight do
+    system_command "/bin/launchctl",
+                   args:         ["kickstart", "-k", "gui/#{Process.uid}/com.terrifiedbug.yap"],
+                   must_succeed: false
+  end
 
   # No uninstall stanza at all, and both halves of that are
   # deliberate. Homebrew runs these directives on upgrade as well as
