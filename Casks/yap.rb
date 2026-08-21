@@ -1,6 +1,6 @@
 cask "yap" do
-  version "0.1.6"
-  sha256 "43d618e28c80179520bb3626c0ed89f33f3ea35e616d4d8af5bb18f85a40f9cc"
+  version "0.1.7"
+  sha256 "b7d1c539132b3bf1225d513021c671e4970a9f2d11022e4403ce2ff2c5f2751d"
 
   url "https://github.com/TerrifiedBug/yap/releases/download/v#{version}/yap-#{version}.dmg"
   name "yap"
