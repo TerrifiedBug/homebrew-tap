@@ -1,6 +1,6 @@
 cask "yap" do
-  version "0.2.0"
-  sha256 "ede216e2c8c657e09076ab8b322247481868960bc0fc27b89325bb691467b90e"
+  version "0.3.0"
+  sha256 "75abdb94fec28f4ed9b8ec5a133f23430e1c8f930818393cf125ded67fb25716"
 
   url "https://github.com/TerrifiedBug/yap/releases/download/v#{version}/yap-#{version}.dmg"
   name "yap"
@@ -12,10 +12,10 @@ cask "yap" do
   depends_on macos: :sequoia
 
   app "yap.app"
-  # yap is a CLI first. The bundle exists so the build can be
-  # notarized and so TCC has something stable to hang grants on; this
-  # puts the command itself on PATH.
-  binary "#{appdir}/yap.app/Contents/MacOS/yap"
+  # No "binary" stanza. yap is a menu-bar app; the only subcommand
+  # left is "bench", which is a development tool, and putting a
+  # second path to the same executable on PATH is how the daemon
+  # ended up with two LaunchServices identities in the first place.
 
   # Homebrew replaces /Applications/yap.app, but a process keeps the
   # image it already mapped. Without this you stay on the old version
@@ -23,23 +23,41 @@ cask "yap" do
   # the new binary on disk and agrees with the version you just
   # installed — the worst shape for a bug, because it looks fixed.
   #
-  # "kickstart -k" rather than an uninstall stanza: it replaces the
-  # job launchd already owns, so the daemon stays inside launchd and
-  # the plist — the login item — is untouched.
+  # The rewrite first, and it is not cosmetic. yap 0.2's plist ran
+  # "yap run --skip-doctor", an argument 0.3 does not take: launchd
+  # would start it, ArgumentParser would exit 64, KeepAlive would
+  # relaunch it, and the login item would spin for ever. Nothing but
+  # this line and yap itself ever rewrites that file.
+  #
+  # bootout + bootstrap rather than "kickstart -k", because launchd
+  # reads a plist when the job is bootstrapped and not again — a
+  # kickstart would faithfully relaunch the arguments it already had
+  # in memory, rewritten file or not.
   #
   # Measured, because the alternative is losing someone's meeting:
-  # -k delivers SIGTERM, not SIGKILL, and yap catches SIGTERM and
-  # routes it through applicationWillTerminate. So a recording in
+  # bootout delivers SIGTERM, not SIGKILL, and yap catches SIGTERM
+  # and routes it through applicationWillTerminate. So a recording in
   # flight is finalized and transcribes on the next start instead of
-  # losing its meta.json. launchd brings the new image up about five
-  # seconds later.
+  # losing its meta.json.
   #
-  # must_succeed: false because an install with no login item has no
-  # job to restart, and launchctl exits 113 there. Not having asked
-  # for launch-at-login is not a reason to fail an upgrade.
+  # must_succeed: false throughout because an install with no login
+  # item has no job to restart, and launchctl exits 113 there. Not
+  # having asked for launch-at-login is not a reason to fail an
+  # upgrade.
   postflight do
+    agent = File.expand_path("~/Library/LaunchAgents/com.terrifiedbug.yap.plist")
+    next unless File.exist?(agent)
+
+    system_command "/usr/bin/plutil",
+                   args:         ["-replace", "ProgramArguments", "-json",
+                                  %Q(["#{appdir}/yap.app/Contents/MacOS/yap", "run"]),
+                                  agent],
+                   must_succeed: false
     system_command "/bin/launchctl",
-                   args:         ["kickstart", "-k", "gui/#{Process.uid}/com.terrifiedbug.yap"],
+                   args:         ["bootout", "gui/#{Process.uid}/com.terrifiedbug.yap"],
+                   must_succeed: false
+    system_command "/bin/launchctl",
+                   args:         ["bootstrap", "gui/#{Process.uid}", agent],
                    must_succeed: false
   end
 
@@ -49,11 +67,11 @@ cask "yap" do
   # ~/Library/LaunchAgents/<label>.plist, so every upgrade would
   # quietly switch launch-at-login off, and "quit" is recorded and
   # then reopened with "open -b" afterwards, which would start the
-  # daemon outside launchd where neither "yap stop" nor the login
-  # item can reach it.
+  # daemon outside launchd where the login item cannot reach it.
   #
   # Neither is a loss, because the cask never started the daemon.
-  # "yap install --launch-at-login" did, and it owns stopping it.
+  # The "Launch at login" toggle in Settings did, and it owns
+  # stopping it.
 
   # zap only runs on "brew uninstall --zap", which is the one time
   # taking the login item away is what was asked for. launchctl
@@ -69,13 +87,11 @@ cask "yap" do
       ]
 
   caveats <<~CAVEAT
-    Finish setting up with:
-      yap setup
-      yap install --launch-at-login
+    Launch yap from Applications. It asks for the permissions it
+    needs from the menu bar, and downloads the model in the
+    background on first run.
 
-    The login item belongs to yap rather than to this cask, so a
-    plain uninstall leaves it behind. To remove everything:
-      yap install --uninstall
+    To remove everything, including the login item:
       brew uninstall --zap --cask yap
   CAVEAT
 end
