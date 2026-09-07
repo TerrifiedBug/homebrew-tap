@@ -1,6 +1,6 @@
 cask "browseroute" do
-  version "0.1.0"
-  sha256 "dc3cea602636f9917af090e7e469e18f2db13c011df33c92d131c9cc64226ed9"
+  version "0.2.0"
+  sha256 "7f4a95f977a585fa989faaf3f3723376d6853192b7b508e1b6652ba7a727349b"
 
   url "https://github.com/TerrifiedBug/browseroute/releases/download/v#{version}/Browseroute-#{version}.zip"
   name "Browseroute"
@@ -8,8 +8,8 @@ cask "browseroute" do
   homepage "https://github.com/TerrifiedBug/browseroute"
 
   # Signed and notarized. Opens from Applications with no Gatekeeper prompt.
-  # A bare symbol is the minimum version. The ">= :sonoma" string form is
-  # deprecated and warns on every brew install.
+  # A bare symbol is the minimum version. The ">= :sonoma" string
+  # form is deprecated and warns on every brew install.
   depends_on macos: :sonoma
 
   app "Browseroute.app"
